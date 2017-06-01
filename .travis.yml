@@ -10,14 +10,10 @@ before_install:
   - sudo ln -s /usr/local/share/arduino/arduino /usr/local/bin/arduino
   
 install:
-  # install wire lib
-  #- arduino --install-library "Wire"
-  # install AccelStepper lib
-  #- ln -s $PWD/AccelStepper /usr/local/share/arduino/libraries/AccelStepper
-  # install IRNAS/Arduino-Switch-Debounce
-  #- git clone https://github.com/IRNAS/Arduino-Switch-Debounce /usr/local/share/arduino/libraries/Arduino-Switch-Debounce
-  #- cp -avr /usr/local/share/arduino/libraries/Arduino-Switch-Debounce/Switch /usr/local/share/arduino/libraries/Switch
-  #- ls -l /usr/local/share/arduino/libraries/Switch
+  # install MPU6050 lib
+  - ln -s $PWD//i2cdevlib/Arduino/MPU6050 /usr/local/share/arduino/libraries/MPU6050
+  # install I2Cdev lib
+  - ln -s $PWD//i2cdevlib/Arduino/I2Cdev /usr/local/share/arduino/libraries/I2Cdev
   
 script:
   - arduino --verify --board arduino:avr:mini:cpu=atmega328 $PWD/move_driver_firmware/move_driver_firmware.ino
