@@ -16,7 +16,7 @@ install:
   - ln -s $PWD//i2cdevlib/Arduino/I2Cdev /usr/local/share/arduino/libraries/I2Cdev
   
 script:
-  - arduino --verify --board arduino:avr:mini:cpu=atmega328 $PWD/move_driver_firmware/move_driver_firmware.ino
+  - arduino --verify --board arduino:avr:mini:cpu=atmega328 $PWD/accel_firmware/accel_firmware.ino
 
 notifications:
   email:
