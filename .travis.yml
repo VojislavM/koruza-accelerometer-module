@@ -11,9 +11,11 @@ before_install:
   
 install:
   # install MPU6050 lib
-  - ln -s $PWD//i2cdevlib/Arduino/MPU6050 /usr/local/share/arduino/libraries/MPU6050
+  - ln -s $PWD/i2cdevlib/Arduino/MPU6050 /usr/local/share/arduino/libraries/MPU6050
   # install I2Cdev lib
-  - ln -s $PWD//i2cdevlib/Arduino/I2Cdev /usr/local/share/arduino/libraries/I2Cdev
+  - ln -s $PWD/i2cdevlib/Arduino/I2Cdev /usr/local/share/arduino/libraries/I2Cdev
+  # install CRC32 lib
+  - ln -s $PWD/CRC32 /usr/local/share/arduino/libraries/CRC32
   
 script:
   - arduino --verify --board arduino:avr:mini:cpu=atmega328 $PWD/accel_firmware/accel_firmware.ino
