@@ -1,5 +1,9 @@
 
 # Koruza-Accelerometer-module [![Build Status](https://travis-ci.org/IRNAS/koruza-accelerometer-module.svg?branch=master)](https://travis-ci.org/IRNAS/koruza-accelerometer-module)
+The koruza-accelerometer-module is a small addon board/module for the Koruza unit. This module connects to the USB port of the koruza CM board and its main purpose is to collect the vibration data of the Koruza unit. 
+
+
+
 ---
 
 ## Licensing
