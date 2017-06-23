@@ -1,8 +1,35 @@
-
 # Koruza-Accelerometer-module [![Build Status](https://travis-ci.org/IRNAS/koruza-accelerometer-module.svg?branch=master)](https://travis-ci.org/IRNAS/koruza-accelerometer-module)
-The koruza-accelerometer-module is a small addon board/module for the Koruza unit. This module connects to the USB port of the koruza CM board and its main purpose is to collect the vibration data of the Koruza unit. 
+The koruza-accelerometer-module is a small addon board/module for the Koruza unit. This module connects to the USB port of the koruza CM board and its main purpose is to collect and process the vibration data of the Koruza unit.
+
+### Requirments
+Requirements for the module are:
+* small hardware form factor
+* optional firmware upgrade inside the koruza unit
+* USB connection to provide power and data
+* collect and process vibration data, frequencies of interest: **0.1 to 10 Hz**
+* send processed data periodically, every 0.5 to 1 sec
 
 
+### Hardware
+There are several ways to measure mechanical vibrations and we will measure them using an MEMS-based accelerometer - [MPU-6050 accelerometer](link1_accelerometer). The MPU-6050 accelerometer is a triaxial MEMS type device, that can be programmed to measure from 2 _g_ to 16 _g_. The MPU-6050 sensor is mounted on the board [Flip32 All In One (Pro) Flight Controller V1.03](link2_module) which also has an:
+* STM32F103 MCU,
+* MS5611 Barometer,
+* Onboard USB (USB to Serial CP210x)
+* and as mentioned MPU6050.
+
+Board dimensions are: 35 x 35 mm (30 x 30mm mounting holes), weight is 17g including wiring.
+
+![hw_module][link3_hw_image]
+
+### Software
+Originally module should have been just the I/O interface between the accelerometer and the Koruza unit, but because the data of interest is form 0.1 to 10 Hz which meant that sampling frequency needs to be at least two times bigger than the maximum frequency, that was not possible. So the sampling frequency is least 20 Hz and this means that time between each data package which is sent form the accelerometer module to the koruza module is 50 ms. This could represent the problem for the Koruza CM because it is already running the koruza control software and has intensive communication with the move driver, SFP modules, etc. 
+
+This means the MCU need to process the data before sending it. Data will be sent for all three axes x, y, and z. To be able the send all the important information the data will be divided into the several segments and send the vibration data for each axes in pairs of - peak value and average intensity. 
+
+The segments are divided as shown in diagram below:
+![segment_module][link4_segment_module]
+
+To collect information about peak value and average intensity over some period of time and for each axis we need to change from the time domain to frequency domain. This will be done using Furie transformation (FFT).
 
 ---
 
@@ -22,6 +49,10 @@ What this means is that you can use hardware, firmware, software and documentati
 Koruza, GoodEnoughCNC and IRNAS are all names and marks of Institut IRNAS Rače. 
 You may use these names and terms only to attribute the appropriate entity as required by the Open Licences referred to above. You may not use them in any other way and in particular you may not use them to imply endorsement or authorization of any hardware that you design, make or sell.
 
-[link1]: <nolink>
-[link2]: <https://github.com/IRNAS/Koruza-Move-Driver-Firmware/blob/docs/TLV_communication.md>
+[link1_accelerometer]: <datasheet_link>
+[link2_module]: <https://hobbyking.com/en_us/flip32-naze32-all-in-one-pro.html>
+[link3_hw_image]: <https://github.com/IRNAS/koruza-accelerometer-module/blob/master/Pics/hardware_module.png.png>
+[link4_segment_module]: <https://github.com/IRNAS/koruza-accelerometer-module/blob/master/Pics/segment_diagram.png>
+
+
 
