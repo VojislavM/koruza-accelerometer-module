@@ -122,13 +122,13 @@ void communicate(void){
         //accelgyro.getAcceleration(&ax, &ay, &az);
         //accelgyro.getRotation(&gx, &gy, &gz);
         
-        acceleroemter_values.ax = ax;
-        acceleroemter_values.ay = ay;
-        acceleroemter_values.az = az;
+        acceleroemter_values.ax = 10;//ax;
+        acceleroemter_values.ay = 20;//ay;
+        acceleroemter_values.az = 30;//az;
 
-        gyroscope_values.gx = gx;
-        gyroscope_values.gy = gy;
-        gyroscope_values.gz = gz;
+        gyroscope_values.gx = 40;//gx;
+        gyroscope_values.gy = 50;//gy;
+        gyroscope_values.gz = 60;//gz;
         
         #ifdef OUTPUT_READABLE_ACCELGYRO
             // display tab-separated accel/gyro x/y/z values
@@ -151,9 +151,11 @@ void communicate(void){
         message_tlv_add_gyroscope_value(&msg_send, &gyroscope_values);
         message_tlv_add_checksum(&msg_send);
         send_bytes(&msg_send);
-
-        message_print(&msg_send);
-        Serial.println();
+        
+        #ifdef OUTPUT_READABLE_ACCELGYRO
+          message_print(&msg_send);
+          Serial.println();
+        #endif
         
         message_free(&msg_send);
         message_free(&msg_parsed);
