@@ -10,7 +10,7 @@ Hardware is based on the FLIP32 AIO board. Main characteristics are:
 * MS5611 Barometer
 
 
-Board configuration:
+#### Board configuration:
 * LED1 - PB4 (GPIO)/ PIN 40
 * LED2 - PB3 (GPIO)/ PIN 39
 * USB TO UART
@@ -25,3 +25,6 @@ Board configuration:
 * MS5611 I2C2
   * SCL2 PB10 / PIN21
   * SDA2 PB11 / PIN22 
+
+#### I2C addresses:
+* MPU6050 0x68
