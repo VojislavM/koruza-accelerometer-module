@@ -28,3 +28,4 @@ Hardware is based on the FLIP32 AIO board. Main characteristics are:
 
 #### I2C addresses:
 * MPU6050 0x68
+* MS5611  0x77
