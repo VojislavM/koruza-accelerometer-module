@@ -28,7 +28,7 @@
 #define MAX_TLV_COUNT 25
 
 
-typedef unsigned int ssize_t;  // (instead of int)
+//typedef unsigned int ssize_t;  // (instead of int)
 /**
    TLVs supported by the protocol.
 */

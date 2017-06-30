@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "Ethernet.h"
+//#include "Ethernet.h"
 #include "inet.h"
 
 // Forward declarations.

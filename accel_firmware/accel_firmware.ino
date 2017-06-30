@@ -24,8 +24,8 @@ MPU6050 accelgyro;
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
 
-
-#define LED_PIN 13
+#define LED_1 PB3
+#define LED_2 PB4
 bool blinkState = false;
 
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
@@ -52,25 +52,29 @@ tlv_acceleroemter_value_t acceleroemter_values;
 tlv_gyroscope_value_t gyroscope_values;
 
 void setup() {
-  
-   // join I2C bus (I2Cdev library doesn't do this automatically)
+  // begin serial communication
+  Serial.begin(115200);
+  // Disable debug ports, for standard GPIO use
+  disableDebugPorts();
+  // join I2C bus (I2Cdev library doesn't do this automatically)
   #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
       Wire.begin();
   #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
       Fastwire::setup(400, true);
   #endif
   
-  // begin serial communication
-  Serial.begin(115200);
-
-   // initialize device
-  Serial.println("Initializing I2C devices...");
+  #ifdef OUTPUT_READABLE_ACCELGYRO
+    // initialize device
+    Serial.println("Initializing I2C devices...");
+  #endif
   accelgyro.initialize();
-
-  // verify connection
-  Serial.println("Testing device connections...");
-  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
-
+  
+  #ifdef OUTPUT_READABLE_ACCELGYRO  
+    // verify connection
+    Serial.println("Testing device connections...");
+    Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+  #endif
+  
   // use the code below to change accel/gyro offset values
   /*
   Serial.println("Updating internal sensor offsets...");
@@ -95,13 +99,22 @@ void setup() {
   */
 
   // configure Arduino LED for
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_1, OUTPUT);
+  pinMode(LED_2, OUTPUT);
 }
 
 void loop() {
+  accelgyro.getAcceleration(&ax, &ay, &az);
+  Serial.print(ax); Serial.print("\t");
+  Serial.print(ay); Serial.print("\t");
+  Serial.println(az);
+  // blink LED to indicate activity
+  blinkState = !blinkState;
+  digitalWrite(LED_2, blinkState);
 
-  communicate();
-  receive_bytes(rx_buffer, &command_received, &message_len);
+    
+  //communicate();
+  //receive_bytes(rx_buffer, &command_received, &message_len);
 }
 
 void communicate(void){
@@ -143,7 +156,7 @@ void communicate(void){
 
         // blink LED to indicate activity
         blinkState = !blinkState;
-        digitalWrite(LED_PIN, blinkState);
+        digitalWrite(LED_2, blinkState);
             
         message_init(&msg_send);
         message_tlv_add_reply(&msg_send, REPLY_STATUS_REPORT);
