@@ -103,11 +103,26 @@ void setup() {
     Serial.println("Testing device connections...");
     Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
   #endif
-  
-  // use the code below to change accel/gyro offset values
   /*
+  // use the code below to change accel/gyro offset values
+  delay(1000);
   Serial.println("Updating internal sensor offsets...");
   // -76  -2359 1688  0 0 0
+  accelgyro.getAcceleration(&ax, &ay, &az);
+  accelgyro.getAcceleration(&ax, &ay, &az);
+  
+  Serial.print(ax); Serial.print("\t");
+  Serial.print(ay); Serial.print("\t");
+  Serial.print(az); Serial.print("\t");
+  Serial.println();
+
+  accelgyro.getAcceleration(&ax, &ay, &az);
+
+  Serial.print(ax); Serial.print("\t");
+  Serial.print(ay); Serial.print("\t");
+  Serial.print(az); Serial.print("\t");
+  Serial.println();
+  
   Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
   Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
   Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
@@ -118,6 +133,10 @@ void setup() {
   accelgyro.setXGyroOffset(220);
   accelgyro.setYGyroOffset(76);
   accelgyro.setZGyroOffset(-85);
+  accelgyro.setXAccelOffset(ax);
+  //accelgyro.setYAccelOffset(0);
+  //accelgyro.setZAccelOffset(0);
+  
   Serial.print(accelgyro.getXAccelOffset()); Serial.print("\t"); // -76
   Serial.print(accelgyro.getYAccelOffset()); Serial.print("\t"); // -2359
   Serial.print(accelgyro.getZAccelOffset()); Serial.print("\t"); // 1688
@@ -125,8 +144,15 @@ void setup() {
   Serial.print(accelgyro.getYGyroOffset()); Serial.print("\t"); // 0
   Serial.print(accelgyro.getZGyroOffset()); Serial.print("\t"); // 0
   Serial.print("\n");
-  */
 
+  accelgyro.getAcceleration(&ax, &ay, &az);
+  Serial.print(ax); Serial.print("\t");
+  Serial.print(ay); Serial.print("\t");
+  Serial.print(az); Serial.print("\t");
+  Serial.println();
+  
+  while(1);
+*/
   if(samplingFrequency<=1000)
     delayTime = 1000/samplingFrequency;
   else
@@ -138,52 +164,12 @@ void setup() {
 }
 
 void loop() {
-  Serial.println("start");
-  for(uint16_t i =0;i<N;i++)
-  {
-    accelgyro.getAcceleration(&ax, &ay, &az);
-    ax_in[i] = (double)ax;
-    ay_in[i] = (double)ay;
-    az_in[i] = (double)az;
-    if(samplingFrequency<=1000)
-      delay(delayTime);
-    else
-      delayMicroseconds(delayTime);
-  }
-  
-  Serial.println("v1");
-  FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-  FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-  FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-  
-  Serial.println("v2");
-  FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+  //Serial.println("start");
 
-  Serial.println("v3");
-  FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
-
-  Serial.println("v4");
-  peak_x = FFT.MajorPeak(ax_in, (uint16_t)N, samplingFrequency);
-  peak_y = FFT.MajorPeak(ay_in, (uint16_t)N, samplingFrequency);
-  peak_z = FFT.MajorPeak(az_in, (uint16_t)N, samplingFrequency);
-
-  Serial.println("V55");
-  while(1);
- 
-//  Serial.print(ax); Serial.print(":");
-//  Serial.print(ay); Serial.print(":");
-//  Serial.println(az);
-  // blink LED to indicate activity
-  blinkState = !blinkState;
-  digitalWrite(LED_2, blinkState);
 
     
-  //communicate();
-  //receive_bytes(rx_buffer, &command_received, &message_len);
+  communicate();
+  receive_bytes(rx_buffer, &command_received, &message_len);
 }
 
 void communicate(void){
@@ -196,19 +182,84 @@ void communicate(void){
       //message_print(&msg_parsed);
       //Serial.println();
       if (parsed_command == COMMAND_GET_STATUS){
+        Serial.println("v1");
+        /* collect data for accelerometer */
+        for(uint16_t i =0;i<N;i++)
+        {
+          accelgyro.getAcceleration(&ax, &ay, &az);
+          ax_in[i] = (double)ax;
+          ay_in[i] = (double)ay;
+          az_in[i] = (double)az;
+          if(samplingFrequency<=1000)
+            delay(delayTime);
+          else
+            delayMicroseconds(delayTime);
+        }
+        //PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
+        //Serial.println();
+        //Serial.println();
+      
+        //Serial.println("v1");
+        FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+        FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+        FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
         
+        //Serial.println("v2");
+        FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
+        FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
+        FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+      
+        //Serial.println("v3");
+        FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
+        FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
+        FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+      
+        //PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
+        //Serial.println();
+        //Serial.println();
         
-        // these methods (and a few others) are also available
-        //accelgyro.getAcceleration(&ax, &ay, &az);
-        //accelgyro.getRotation(&gx, &gy, &gz);
+        //Serial.println("v4");
+        peak_x = FFT.MajorPeak(ax_in, (uint16_t)N, samplingFrequency);
+        peak_y = FFT.MajorPeak(ay_in, (uint16_t)N, samplingFrequency);
+        peak_z = FFT.MajorPeak(az_in, (uint16_t)N, samplingFrequency);
+      
+//        Serial.print(peak_x);
+//        Serial.print(" ");
+//        Serial.print(peak_y);
+//        Serial.print(" ");
+//        Serial.print(peak_z);
+//        Serial.println();
+      
+//        Serial.println("V55");
+//        while(1);
+       
+      //  Serial.print(ax); Serial.print(":");
+      //  Serial.print(ay); Serial.print(":");
+      //  Serial.println(az);
+        // blink LED to indicate activity
+        blinkState = !blinkState;
+        digitalWrite(LED_2, blinkState);
         
-        acceleroemter_values.ax = peak_x;
-        acceleroemter_values.ay = peak_y;
-        acceleroemter_values.az = peak_z;
-
-        gyroscope_values.gx = 40;//gx;
-        gyroscope_values.gy = 50;//gy;
-        gyroscope_values.gz = 60;//gz;
+        if(peak_x <0.1 || peak_x > 10){
+          acceleroemter_values.ax = 0;
+        }else{
+          acceleroemter_values.ax = (int32_t)peak_x;
+        }
+        if(peak_y <0.1 || peak_y > 10){
+          acceleroemter_values.ay = 0;
+        }else{
+          acceleroemter_values.ay = (int32_t)peak_y;
+        }
+        if(peak_z <0.1 || peak_z > 10){
+          acceleroemter_values.az = 0;
+        }else{
+          acceleroemter_values.az = (int32_t)peak_z;
+        }
+        
+//
+//        gyroscope_values.gx = 40;//gx;
+//        gyroscope_values.gy = 50;//gy;
+//        gyroscope_values.gz = 60;//gz;
         
         #ifdef OUTPUT_READABLE_ACCELGYRO
             // display tab-separated accel/gyro x/y/z values
@@ -250,8 +301,7 @@ void communicate(void){
 
 
 
-void PrintVector(double *vData, uint8_t bufferSize, uint8_t scaleType)
-{
+void PrintVector(double *vData, double *vData1, double *vData2, uint8_t bufferSize, uint8_t scaleType){
   for (uint16_t i = 0; i < bufferSize; i++)
   {
     double abscissa;
@@ -268,9 +318,13 @@ void PrintVector(double *vData, uint8_t bufferSize, uint8_t scaleType)
         abscissa = ((i * 1.0 * samplingFrequency) / N);
   break;
     }
-    Serial.print(abscissa, 6);
+    Serial.print(abscissa, 4);
     Serial.print(" ");
-    Serial.print(vData[i], 4);
+    Serial.print(vData[i]);
+    Serial.print(" ");
+    Serial.print(vData1[i]);
+    Serial.print(" ");
+    Serial.print(vData2[i]);
     Serial.println();
   }
   Serial.println();
