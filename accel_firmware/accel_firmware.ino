@@ -41,7 +41,7 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
 // not so easy to parse, and slow(er) over UART.
-#define OUTPUT_READABLE_ACCELGYRO
+//#define OUTPUT_READABLE_ACCELGYRO
 
 /*** RECEIVING DATA VARIABLES ***/
 /* True when receiving string is completed */
@@ -182,7 +182,7 @@ void communicate(void){
       //message_print(&msg_parsed);
       //Serial.println();
       if (parsed_command == COMMAND_GET_STATUS){
-        Serial.println("v1");
+        //Serial.println("v1");
         /* collect data for accelerometer */
         for(uint16_t i =0;i<N;i++)
         {
