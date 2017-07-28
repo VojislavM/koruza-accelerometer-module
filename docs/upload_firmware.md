@@ -5,7 +5,7 @@ Firmware is uploaded to the [FLIP32 AIO Flight Controller](https://github.com/IR
 1. Connect **boot** jumper, located next to the micro USB connector
 2. Connect micro USB to the PC
 3. Download firmware
-    * Download the correct bootloader binary - [link](https://github.com/IRNAS/koruza-accelerometer-module/tree/dev_branch/output)
+    * Download the correct firmware binary - [link](https://github.com/IRNAS/koruza-accelerometer-module/tree/dev_branch/output)
     * Download and install Flash Loader Demonstrator - [link](http://www.st.com/content/st_com/en/products/development-tools/software-development-tools/stm32-software-development-tools/stm32-programmers/flasher-stm32.html)
     * Use Flash Loader Demonstrator to flash the firmware, see screenshots below
     
