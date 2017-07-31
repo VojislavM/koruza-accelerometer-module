@@ -15,33 +15,57 @@
 #endif
 #include "arduinoFFT.h"
 
+// uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
+// list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
+// not so easy to parse, and slow(er) over UART.
+//#define OUTPUT_READABLE_ACCELGYRO
+
+#define N 128    // Sampling point
+
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
 // AD0 high = 0x69
 MPU6050 accelgyro;
 //MPU6050 accelgyro(0x69); // <-- use for AD0 high
+arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 
-#define Fs 3000 // Sampling Frequency
-#define N 128    // Sampling point
+double samplingFrequency = 200;
+unsigned int delayTime = 0;
 
 int16_t ax, ay, az;
-int16_t gx, gy, gz;
 
+// real values
 double ax_in[N];
 double ay_in[N];
 double az_in[N];
 
+// imag values
+double vImag_x[N];
+double vImag_y[N];
+double vImag_z[N];
+
+// peak values
+double peak_x;
+double peak_y;
+double peak_z;
+
+// average values
+double average_sum_x = 0;
+int average_count_x = 0;
+double average_sum_y = 0;
+int average_count_y = 0;
+double average_sum_z = 0;
+int average_count_z = 0;
+
+// send average valies
+double peak_send_x;
+double peak_send_y;
+double peak_send_z;
+
 #define LED_1 PB3
 #define LED_2 PB4
 bool blinkState = false;
-
-arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
-
-// uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
-// list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
-// not so easy to parse, and slow(er) over UART.
-#define OUTPUT_READABLE_ACCELGYRO
 
 /*** RECEIVING DATA VARIABLES ***/
 /* True when receiving string is completed */
@@ -59,27 +83,13 @@ message_t msg_send;
 tlv_command_t parsed_command;
 
 tlv_acceleroemter_value_t acceleroemter_values;
-tlv_gyroscope_value_t gyroscope_values;
-
-int32_t test_x = 0;
-int32_t test_y = 10;
-int32_t test_z = 20;
 
 #define SCL_INDEX 0x00
 #define SCL_TIME 0x01
 #define SCL_FREQUENCY 0x02
 
-double samplingFrequency = 200;
-uint8_t amplitude = 100;
-unsigned int delayTime = 0;
 
-double vImag_x[N];
-double vImag_y[N];
-double vImag_z[N];
 
-double peak_x;
-double peak_y;
-double peak_z;
 
 void setup() {
   delay(1000);
@@ -167,9 +177,64 @@ void setup() {
 
 void loop() {
   //Serial.println("start");
+  /* collect data for accelerometer */
+  for(uint16_t i =0;i<N;i++)
+  {
+    accelgyro.getAcceleration(&ax, &ay, &az);
+    ax_in[i] = (double)ax;
+    ay_in[i] = (double)ay;
+    az_in[i] = (double)az;
+    vImag_x[i] = 0;
+    vImag_y[i] = 0;
+    vImag_z[i] = 0;
+    if(samplingFrequency<=1000)
+      delay(delayTime);
+    else
+      delayMicroseconds(delayTime);
+  }
+  //PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
+  //Serial.println();
+  //Serial.println();
 
+  //Serial.println("v1");
+  FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+  FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+  FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
 
-    
+  //Serial.println("v2");
+  FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
+  FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
+  FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+
+  //PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
+  //Serial.println();
+  //Serial.println();
+  
+  //Serial.println("v3");
+  peak_x = FFT.MajorPeak(ax_in, (uint16_t)N, samplingFrequency);
+  peak_y = FFT.MajorPeak(ay_in, (uint16_t)N, samplingFrequency);
+  peak_z = FFT.MajorPeak(az_in, (uint16_t)N, samplingFrequency);
+
+  if(command_received != true){
+    average_sum_x += peak_x;
+    average_count_x++;
+    average_sum_y += peak_y;
+    average_count_y++;
+    average_sum_z += peak_z;
+    average_count_z++;
+  }else{
+    peak_send_x = average_sum_x / (double)average_count_x;
+    peak_send_y = average_sum_y / (double)average_count_y;
+    peak_send_z = average_sum_z / (double)average_count_z;
+    average_count_x = 0;
+    average_count_y = 0;
+    average_count_z = 0;
+
+    average_sum_x = 0;
+    average_sum_y = 0;
+    average_sum_z = 0;
+  }
+
   communicate();
   receive_bytes(rx_buffer, &command_received, &message_len);
 }
@@ -185,45 +250,7 @@ void communicate(void){
       //Serial.println();
       if (parsed_command == COMMAND_GET_STATUS){
         //Serial.println("v1");
-        /* collect data for accelerometer */
-        for(uint16_t i =0;i<N;i++)
-        {
-          accelgyro.getAcceleration(&ax, &ay, &az);
-          ax_in[i] = (double)ax;
-          ay_in[i] = (double)ay;
-          az_in[i] = (double)az;
-          if(samplingFrequency<=1000)
-            delay(delayTime);
-          else
-            delayMicroseconds(delayTime);
-        }
-        //PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
-        //Serial.println();
-        //Serial.println();
-      
-        //Serial.println("v1");
-        FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-        FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-        FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
         
-        //Serial.println("v2");
-        FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
-        FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
-        FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
-      
-        //Serial.println("v3");
-        FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
-        FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
-        FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
-      
-        //PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
-        //Serial.println();
-        //Serial.println();
-        
-        //Serial.println("v4");
-        peak_x = FFT.MajorPeak(ax_in, (uint16_t)N, samplingFrequency);
-        peak_y = FFT.MajorPeak(ay_in, (uint16_t)N, samplingFrequency);
-        peak_z = FFT.MajorPeak(az_in, (uint16_t)N, samplingFrequency);
       
 //        Serial.print(peak_x);
 //        Serial.print(" ");
@@ -242,35 +269,30 @@ void communicate(void){
         blinkState = !blinkState;
         digitalWrite(LED_2, blinkState);
         
-        if(peak_x <0.1 || peak_x > 10){
-          acceleroemter_values.ax = 0;
-        }else{
-          acceleroemter_values.ax = (int32_t)peak_x;
-        }
-        if(peak_y <0.1 || peak_y > 10){
-          acceleroemter_values.ay = 0;
-        }else{
-          acceleroemter_values.ay = (int32_t)peak_y;
-        }
-        if(peak_z <0.1 || peak_z > 10){
-          acceleroemter_values.az = 0;
-        }else{
-          acceleroemter_values.az = (int32_t)peak_z;
-        }
+//        if(peak_x <0.1 || peak_x > 10){
+//          acceleroemter_values.ax = 0;
+//        }else{
+          acceleroemter_values.ax = (int32_t)peak_send_x;
+//        }
+//        if(peak_y <0.1 || peak_y > 10){
+//          acceleroemter_values.ay = 0;
+//        }else{
+          acceleroemter_values.ay = (int32_t)peak_send_y;
+//        }
+//        if(peak_z <0.1 || peak_z > 10){
+//          acceleroemter_values.az = 0;
+//        }else{
+          acceleroemter_values.az = (int32_t)peak_send_z;
+//        }
 
-        test_x += 1;
-        test_y += 1;
-        test_z += 1;
-        
-        acceleroemter_values.ax = test_x;
-        acceleroemter_values.ay = test_y;
-        acceleroemter_values.az = test_z;
+        peak_send_x = 0;
+        peak_send_y = 0;
+        peak_send_z = 0;
 
-        if(test_x == 9){
-          test_x = 0;
-          test_y = 10;
-          test_z = 20;  
-        }
+//        acceleroemter_values.ax = 10;
+//        acceleroemter_values.ay = 20;
+//        acceleroemter_values.az = 30;
+
 //
 //        gyroscope_values.gx = 40;//gx;
 //        gyroscope_values.gy = 50;//gy;
@@ -278,13 +300,10 @@ void communicate(void){
         
         #ifdef OUTPUT_READABLE_ACCELGYRO
             // display tab-separated accel/gyro x/y/z values
-            Serial.print("a/g:\t");
-            Serial.print(ax); Serial.print("\t");
-            Serial.print(ay); Serial.print("\t");
-            Serial.print(az); Serial.print("\t");
-            Serial.print(gx); Serial.print("\t");
-            Serial.print(gy); Serial.print("\t");
-            Serial.println(gz);
+            Serial.print("a:\t");
+            Serial.print(acceleroemter_values.ax); Serial.print("\t");
+            Serial.print(acceleroemter_values.ay); Serial.print("\t");
+            Serial.println(acceleroemter_values.az);
         #endif
 
         // blink LED to indicate activity
