@@ -41,7 +41,7 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 // uncomment "OUTPUT_READABLE_ACCELGYRO" if you want to see a tab-separated
 // list of the accel X/Y/Z and then gyro X/Y/Z values in decimal. Easy to read,
 // not so easy to parse, and slow(er) over UART.
-//#define OUTPUT_READABLE_ACCELGYRO
+#define OUTPUT_READABLE_ACCELGYRO
 
 /*** RECEIVING DATA VARIABLES ***/
 /* True when receiving string is completed */
@@ -61,7 +61,9 @@ tlv_command_t parsed_command;
 tlv_acceleroemter_value_t acceleroemter_values;
 tlv_gyroscope_value_t gyroscope_values;
 
-
+int32_t test_x = 0;
+int32_t test_y = 10;
+int32_t test_z = 20;
 
 #define SCL_INDEX 0x00
 #define SCL_TIME 0x01
@@ -255,7 +257,20 @@ void communicate(void){
         }else{
           acceleroemter_values.az = (int32_t)peak_z;
         }
+
+        test_x += 1;
+        test_y += 1;
+        test_z += 1;
         
+        acceleroemter_values.ax = test_x;
+        acceleroemter_values.ay = test_y;
+        acceleroemter_values.az = test_z;
+
+        if(test_x == 9){
+          test_x = 0;
+          test_y = 10;
+          test_z = 20;  
+        }
 //
 //        gyroscope_values.gx = 40;//gx;
 //        gyroscope_values.gy = 50;//gy;
