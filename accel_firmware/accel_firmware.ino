@@ -41,6 +41,7 @@ unsigned int delayTime = 0;
 unsigned long previousMillis = 0;        // will store last time accelerometer values are collected
 
 int sample_counter = 0;
+bool data_ready = false;
 
 int16_t ax, ay, az;
 
@@ -71,6 +72,8 @@ int average_count_z = 0;
 double peak_send_x;
 double peak_send_y;
 double peak_send_z;
+
+tlv_vibration_value_t vibration_values;
 
 double average_0_x = 0;
 double average_1_x = 0;
@@ -142,7 +145,7 @@ void setup() {
     Serial.println("Initializing I2C devices...");
   #endif
   accelgyro.initialize();
-  
+  accelgyro.testConnection();
   #ifdef OUTPUT_READABLE_ACCELGYRO  
     // verify connection
     Serial.println("Testing device connections...");
@@ -210,7 +213,7 @@ void setup() {
 }
 
 void loop() {
-while(1){  
+  
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= delayTime) {
@@ -232,82 +235,57 @@ while(1){
   if(sample_counter == N){
     sample_counter = 0;
     
-    Serial.println("Data:");
-    PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
-    Serial.println();
-    Serial.println();
+//    Serial.println("Data:");
+//    PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
+//    Serial.println();
+//    Serial.println();
   
     //Serial.println("v1");
     FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
     FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
     FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
     
-    Serial.println("Computed Real values:");
-    PrintVector(ax_in, ay_in, az_in, N, SCL_INDEX);
-    Serial.println();
+//    Serial.println("Computed Real values:");
+//    PrintVector(ax_in, ay_in, az_in, N, SCL_INDEX);
+//    Serial.println();
     //Serial.println("v2");
     
     FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
     FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
     FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+
+
+    average_0_x = average(ax_in, RANGE_0_TO_1);
+    average_1_x = average(ax_in, RANGE_1_TO_3);
+    average_2_x = average(ax_in, RANGE_3_TO_6);
+    average_3_x = average(ax_in, RANGE_6_TO_10);
   
-    PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
-    Serial.println();
-    Serial.println();
-
+    max_0_x = max_value(ax_in, RANGE_0_TO_1);
+    max_1_x = max_value(ax_in, RANGE_1_TO_3);
+    max_2_x = max_value(ax_in, RANGE_3_TO_6);
+    max_3_x = max_value(ax_in, RANGE_6_TO_10);
+  
+    average_0_y = average(ay_in, RANGE_0_TO_1);
+    average_1_y = average(ay_in, RANGE_1_TO_3);
+    average_2_y = average(ay_in, RANGE_3_TO_6);
+    average_3_y = average(ay_in, RANGE_6_TO_10);
+  
+    max_0_y = max_value(ay_in, RANGE_0_TO_1);
+    max_1_y = max_value(ay_in, RANGE_1_TO_3);
+    max_2_y = max_value(ay_in, RANGE_3_TO_6);
+    max_3_y = max_value(ay_in, RANGE_6_TO_10);
+  
+    average_0_z = average(az_in, RANGE_0_TO_1);
+    average_1_z = average(az_in, RANGE_1_TO_3);
+    average_2_z = average(az_in, RANGE_3_TO_6);
+    average_3_z = average(az_in, RANGE_6_TO_10);
+  
+    max_0_z = max_value(az_in, RANGE_0_TO_1);
+    max_1_z = max_value(az_in, RANGE_1_TO_3);
+    max_2_z = max_value(az_in, RANGE_3_TO_6);
+    max_3_z = max_value(az_in, RANGE_6_TO_10);
     
-  }
-} 
-
-
-  average_0_x = average(ax_in, RANGE_0_TO_1);
-  average_1_x = average(ax_in, RANGE_1_TO_3);
-  average_2_x = average(ax_in, RANGE_3_TO_6);
-  average_3_x = average(ax_in, RANGE_6_TO_10);
-
-  max_0_x = max_value(ax_in, RANGE_0_TO_1);
-  max_1_x = max_value(ax_in, RANGE_1_TO_3);
-  max_2_x = max_value(ax_in, RANGE_3_TO_6);
-  max_3_x = max_value(ax_in, RANGE_6_TO_10);
-
-  average_0_y = average(ay_in, RANGE_0_TO_1);
-  average_1_y = average(ay_in, RANGE_1_TO_3);
-  average_2_y = average(ay_in, RANGE_3_TO_6);
-  average_3_y = average(ay_in, RANGE_6_TO_10);
-
-  max_0_y = max_value(ay_in, RANGE_0_TO_1);
-  max_1_y = max_value(ay_in, RANGE_1_TO_3);
-  max_2_y = max_value(ay_in, RANGE_3_TO_6);
-  max_3_y = max_value(ay_in, RANGE_6_TO_10);
-
-  average_0_z = average(az_in, RANGE_0_TO_1);
-  average_1_z = average(az_in, RANGE_1_TO_3);
-  average_2_z = average(az_in, RANGE_3_TO_6);
-  average_3_z = average(az_in, RANGE_6_TO_10);
-
-  max_0_z = max_value(az_in, RANGE_0_TO_1);
-  max_1_z = max_value(az_in, RANGE_1_TO_3);
-  max_2_z = max_value(az_in, RANGE_3_TO_6);
-  max_3_z = max_value(az_in, RANGE_6_TO_10);
-
-  if(command_received != true){
-    average_sum_x += peak_x;
-    average_count_x++;
-    average_sum_y += peak_y;
-    average_count_y++;
-    average_sum_z += peak_z;
-    average_count_z++;
-  }else{
-    peak_send_x = average_sum_x / (double)average_count_x;
-    peak_send_y = average_sum_y / (double)average_count_y;
-    peak_send_z = average_sum_z / (double)average_count_z;
-    average_count_x = 0;
-    average_count_y = 0;
-    average_count_z = 0;
-
-    average_sum_x = 0;
-    average_sum_y = 0;
-    average_sum_z = 0;
+    data_ready = true;
   }
 
   communicate();
@@ -324,71 +302,96 @@ void communicate(void){
       //message_print(&msg_parsed);
       //Serial.println();
       if (parsed_command == COMMAND_GET_STATUS){
-        //Serial.println("v1");
-        
-      
-//        Serial.print(peak_x);
-//        Serial.print(" ");
-//        Serial.print(peak_y);
-//        Serial.print(" ");
-//        Serial.print(peak_z);
-//        Serial.println();
-      
-//        Serial.println("V55");
-//        while(1);
-       
-      //  Serial.print(ax); Serial.print(":");
-      //  Serial.print(ay); Serial.print(":");
-      //  Serial.println(az);
-        // blink LED to indicate activity
-        blinkState = !blinkState;
-        digitalWrite(LED_2, blinkState);
-        
-//        if(peak_x <0.1 || peak_x > 10){
-//          acceleroemter_values.ax = 0;
-//        }else{
-          acceleroemter_values.ax = (int32_t)peak_send_x;
-//        }
-//        if(peak_y <0.1 || peak_y > 10){
-//          acceleroemter_values.ay = 0;
-//        }else{
-          acceleroemter_values.ay = (int32_t)peak_send_y;
-//        }
-//        if(peak_z <0.1 || peak_z > 10){
-//          acceleroemter_values.az = 0;
-//        }else{
-          acceleroemter_values.az = (int32_t)peak_send_z;
-//        }
 
-        peak_send_x = 0;
-        peak_send_y = 0;
-        peak_send_z = 0;
-
-//        acceleroemter_values.ax = 10;
-//        acceleroemter_values.ay = 20;
-//        acceleroemter_values.az = 30;
-
-//
-//        gyroscope_values.gx = 40;//gx;
-//        gyroscope_values.gy = 50;//gy;
-//        gyroscope_values.gz = 60;//gz;
-        
         #ifdef OUTPUT_READABLE_ACCELGYRO
+            PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
+            Serial.println();
+            Serial.println();
+        
             // display tab-separated accel/gyro x/y/z values
-            Serial.print("a:\t");
-            Serial.print(acceleroemter_values.ax); Serial.print("\t");
-            Serial.print(acceleroemter_values.ay); Serial.print("\t");
-            Serial.println(acceleroemter_values.az);
+            Serial.print("average x:\t");
+            Serial.print(average_0_x); Serial.print("\t");
+            Serial.print(average_1_x); Serial.print("\t");
+            Serial.print(average_2_x); Serial.print("\t");
+            Serial.println(average_3_x);
+
+            Serial.print("max x:\t");
+            Serial.print(max_0_x); Serial.print("\t");
+            Serial.print(max_1_x); Serial.print("\t");
+            Serial.print(max_2_x); Serial.print("\t");
+            Serial.println(max_3_x);
+
+            Serial.print("average y:\t");
+            Serial.print(average_0_y); Serial.print("\t");
+            Serial.print(average_1_y); Serial.print("\t");
+            Serial.print(average_2_y); Serial.print("\t");
+            Serial.println(average_3_y);
+
+            Serial.print("max y:\t");
+            Serial.print(max_0_y); Serial.print("\t");
+            Serial.print(max_1_y); Serial.print("\t");
+            Serial.print(max_2_y); Serial.print("\t");
+            Serial.println(max_3_y);
+
+            Serial.print("average z:\t");
+            Serial.print(average_0_z); Serial.print("\t");
+            Serial.print(average_1_z); Serial.print("\t");
+            Serial.print(average_2_z); Serial.print("\t");
+            Serial.println(average_3_z);
+
+            Serial.print("max z:\t");
+            Serial.print(max_0_z); Serial.print("\t");
+            Serial.print(max_1_z); Serial.print("\t");
+            Serial.print(max_2_z); Serial.print("\t");
+            Serial.println(max_3_z);
+
+            
         #endif
 
         // blink LED to indicate activity
         blinkState = !blinkState;
         digitalWrite(LED_2, blinkState);
-            
+
+
         message_init(&msg_send);
         message_tlv_add_reply(&msg_send, REPLY_STATUS_REPORT);
-        message_tlv_add_acceleroemter_value(&msg_send, &acceleroemter_values);
-        //message_tlv_add_gyroscope_value(&msg_send, &gyroscope_values);
+        
+        if(data_ready == true){
+          /* put data in struct*/
+          vibration_values.avr_x[0] = (int32_t)average_0_x;
+          vibration_values.avr_x[1] = (int32_t)average_1_x;
+          vibration_values.avr_x[2] = (int32_t)average_2_x;
+          vibration_values.avr_x[3] = (int32_t)average_3_x;
+
+          vibration_values.avr_y[0] = (int32_t)average_0_y;
+          vibration_values.avr_y[1] = (int32_t)average_1_y;
+          vibration_values.avr_y[2] = (int32_t)average_2_y;
+          vibration_values.avr_y[3] = (int32_t)average_3_y;
+
+          vibration_values.avr_z[0] = (int32_t)average_0_z;
+          vibration_values.avr_z[1] = (int32_t)average_1_z;
+          vibration_values.avr_z[2] = (int32_t)average_2_z;
+          vibration_values.avr_z[3] = (int32_t)average_3_z;
+
+          vibration_values.max_x[0] = (int32_t)max_0_x;
+          vibration_values.max_x[1] = (int32_t)max_1_x;
+          vibration_values.max_x[2] = (int32_t)max_2_x;
+          vibration_values.max_x[3] = (int32_t)max_3_x;
+
+          vibration_values.max_y[0] = (int32_t)max_0_y;
+          vibration_values.max_y[1] = (int32_t)max_1_y;
+          vibration_values.max_y[2] = (int32_t)max_2_y;
+          vibration_values.max_y[3] = (int32_t)max_3_y;
+
+          vibration_values.max_z[0] = (int32_t)max_0_z;
+          vibration_values.max_z[1] = (int32_t)max_1_z;
+          vibration_values.max_z[2] = (int32_t)max_2_z;
+          vibration_values.max_z[3] = (int32_t)max_3_z;
+          
+          message_tlv_add_vibration_value(&msg_send, &vibration_values);
+          /* zero data */
+          data_ready = false;  
+        }
         message_tlv_add_checksum(&msg_send);
         send_bytes(&msg_send);
         

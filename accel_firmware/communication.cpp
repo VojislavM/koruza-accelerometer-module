@@ -77,7 +77,7 @@ bool send_bytes(const message_t *msg_send)
 {
   /*** TRANSMITTING DATA VARIABLES ***/
   /* Sending frame buffer */
-  uint8_t send_frame[100];
+  uint8_t send_frame[1000];
   /* Sending frame size */
   ssize_t send_frame_size;
 

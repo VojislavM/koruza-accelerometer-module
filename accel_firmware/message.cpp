@@ -178,7 +178,21 @@ message_result_t message_tlv_add_gyroscope_value(message_t *message, const tlv_g
   tmp.gx = htonl(value->gx);
   tmp.gy = htonl(value->gy);
   tmp.gz = htonl(value->gz);
-  return message_tlv_add(message, TLV_TLV_GYROSCOPE_VALUE, sizeof(tlv_gyroscope_value_t), (uint8_t*) &tmp);
+  return message_tlv_add(message, TLV_GYROSCOPE_VALUE, sizeof(tlv_gyroscope_value_t), (uint8_t*) &tmp);
+}
+
+message_result_t message_tlv_add_vibration_value(message_t *message, const tlv_vibration_value_t *value)
+{
+  tlv_vibration_value_t tmp;
+  for(int i = 0; i < 4; i++){
+    tmp.avr_x[i] = htonl(value->avr_x[i]);
+    tmp.avr_y[i] = htonl(value->avr_y[i]);
+    tmp.avr_z[i] = htonl(value->avr_z[i]);
+    tmp.max_x[i] = htonl(value->max_x[i]);
+    tmp.max_y[i] = htonl(value->max_y[i]);
+    tmp.max_z[i] = htonl(value->max_z[i]);
+  }
+  return message_tlv_add(message, TLV_VIBRATION_VALUES, sizeof(tlv_vibration_value_t), (uint8_t*) &tmp);
 }
 
 message_result_t message_tlv_add_checksum(message_t *message)

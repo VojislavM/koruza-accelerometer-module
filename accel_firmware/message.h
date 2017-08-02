@@ -40,7 +40,8 @@ typedef enum {
   TLV_ERROR_REPORT = 7,
   TLV_ENCODER_VALUE = 9,
   TLV_ACCELEROMETER_VALUE = 10,
-  TLV_TLV_GYROSCOPE_VALUE = 11,
+  TLV_GYROSCOPE_VALUE = 11,
+  TLV_VIBRATION_VALUES = 12,
 } tlv_type_t;
 
 /**
@@ -88,6 +89,15 @@ typedef struct {
   int32_t ay;
   int32_t az;
 } tlv_acceleroemter_value_t;
+
+typedef struct {
+  int32_t avr_x[4];
+  int32_t avr_y[4];
+  int32_t avr_z[4];
+  int32_t max_x[4];
+  int32_t max_y[4];
+  int32_t max_z[4];
+} tlv_vibration_value_t;
 
 typedef struct {
   int32_t gx;
@@ -229,6 +239,15 @@ message_result_t message_tlv_add_acceleroemter_value(message_t *message, const t
    @return Operation result code
 */
 message_result_t message_tlv_add_gyroscope_value(message_t *message, const tlv_gyroscope_value_t *value);
+
+/**
+   Adds a vibration value TLV to a protocol message.
+
+   @param message Destination message instance to add the TLV to
+   @param value vibration value
+   @return Operation result code
+*/
+message_result_t message_tlv_add_vibration_value(message_t *message, const tlv_vibration_value_t *value);
 
 /**
    Adds a checksum TLV to a protocol message. The checksum value is automatically
