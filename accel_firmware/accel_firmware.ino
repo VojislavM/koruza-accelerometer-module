@@ -55,24 +55,6 @@ double vImag_x[N];
 double vImag_y[N];
 double vImag_z[N];
 
-// peak values
-double peak_x;
-double peak_y;
-double peak_z;
-
-// average values
-double average_sum_x = 0;
-int average_count_x = 0;
-double average_sum_y = 0;
-int average_count_y = 0;
-double average_sum_z = 0;
-int average_count_z = 0;
-
-// send average valies
-double peak_send_x;
-double peak_send_y;
-double peak_send_z;
-
 tlv_vibration_value_t vibration_values;
 
 double average_0_x = 0;
@@ -120,8 +102,6 @@ message_t msg_parsed;
 message_t msg_send;
 /* Command parsed form received message */
 tlv_command_t parsed_command;
-
-tlv_acceleroemter_value_t acceleroemter_values;
 
 #define SCL_INDEX 0x00
 #define SCL_TIME 0x01
@@ -198,10 +178,8 @@ void setup() {
   Serial.print(ay); Serial.print("\t");
   Serial.print(az); Serial.print("\t");
   Serial.println();
-  
-  while(1);
 */
-
+  /* determine the sampling time delay*/
   if(samplingFrequency<=1000)
     delayTime = 1000/samplingFrequency;
   else
@@ -215,7 +193,7 @@ void setup() {
 void loop() {
   
   unsigned long currentMillis = millis();
-
+  /* collecting data */
   if (currentMillis - previousMillis >= delayTime) {
     // save the last time accel data is collected
     previousMillis = currentMillis;
@@ -231,7 +209,7 @@ void loop() {
     sample_counter++;
   }
 
-  /* process the collected data */
+  /* process the collected data - FFT and magnitude*/
   if(sample_counter == N){
     sample_counter = 0;
     
@@ -240,7 +218,7 @@ void loop() {
 //    Serial.println();
 //    Serial.println();
   
-    //Serial.println("v1");
+    /* calculate data */
     FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
     FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
     FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
@@ -248,13 +226,17 @@ void loop() {
 //    Serial.println("Computed Real values:");
 //    PrintVector(ax_in, ay_in, az_in, N, SCL_INDEX);
 //    Serial.println();
-    //Serial.println("v2");
+//    Serial.println("v2");
     
     FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
     FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
     FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
 
-
+    /* calculate data - average and max */
+    /* Range 0: 0Hz to 1Hz */
+    /* Range 1: 1Hz to 3Hz */
+    /* Range 2: 3Hz to 6Hz */
+    /* Range 3: 6Hz to 10Hz */ 
     average_0_x = average(ax_in, RANGE_0_TO_1);
     average_1_x = average(ax_in, RANGE_1_TO_3);
     average_2_x = average(ax_in, RANGE_3_TO_6);
@@ -287,8 +269,9 @@ void loop() {
     
     data_ready = true;
   }
-
+  /* send data to the unit */
   communicate();
+  /* receive data from the unit (serial) */
   receive_bytes(rx_buffer, &command_received, &message_len);
 }
 
@@ -299,10 +282,8 @@ void communicate(void){
     {
       message_free(&msg_parsed);
     }else{
-      //message_print(&msg_parsed);
-      //Serial.println();
       if (parsed_command == COMMAND_GET_STATUS){
-
+        /* print readable data */
         #ifdef OUTPUT_READABLE_ACCELGYRO
             PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
             Serial.println();
@@ -343,58 +324,56 @@ void communicate(void){
             Serial.print(max_0_z); Serial.print("\t");
             Serial.print(max_1_z); Serial.print("\t");
             Serial.print(max_2_z); Serial.print("\t");
-            Serial.println(max_3_z);
-
-            
+            Serial.println(max_3_z);      
         #endif
 
         // blink LED to indicate activity
         blinkState = !blinkState;
         digitalWrite(LED_2, blinkState);
-
-
+        /* send calculated data */
         message_init(&msg_send);
         message_tlv_add_reply(&msg_send, REPLY_STATUS_REPORT);
         
         if(data_ready == true){
           /* put data in struct*/
-          vibration_values.avr_x[0] = (int32_t)average_0_x;
-          vibration_values.avr_x[1] = (int32_t)average_1_x;
-          vibration_values.avr_x[2] = (int32_t)average_2_x;
-          vibration_values.avr_x[3] = (int32_t)average_3_x;
+          vibration_values.avr_x[0] = 11111;//(int32_t)average_0_x;
+          vibration_values.avr_x[1] = 12222;//(int32_t)average_1_x;
+          vibration_values.avr_x[2] = 13333;//(int32_t)average_2_x;
+          vibration_values.avr_x[3] = 14444;//(int32_t)average_3_x;
 
-          vibration_values.avr_y[0] = (int32_t)average_0_y;
-          vibration_values.avr_y[1] = (int32_t)average_1_y;
-          vibration_values.avr_y[2] = (int32_t)average_2_y;
-          vibration_values.avr_y[3] = (int32_t)average_3_y;
+          vibration_values.avr_y[0] = 21111;//(int32_t)average_0_y;
+          vibration_values.avr_y[1] = 22222;//(int32_t)average_1_y;
+          vibration_values.avr_y[2] = 23333;///(int32_t)average_2_y;
+          vibration_values.avr_y[3] = 24444;//(int32_t)average_3_y;
 
-          vibration_values.avr_z[0] = (int32_t)average_0_z;
-          vibration_values.avr_z[1] = (int32_t)average_1_z;
-          vibration_values.avr_z[2] = (int32_t)average_2_z;
-          vibration_values.avr_z[3] = (int32_t)average_3_z;
+          vibration_values.avr_z[0] = 31111;//(int32_t)average_0_z;
+          vibration_values.avr_z[1] = 32222;//(int32_t)average_1_z;
+          vibration_values.avr_z[2] = 33333;//(int32_t)average_2_z;
+          vibration_values.avr_z[3] = 34444;//(int32_t)average_3_z;
 
-          vibration_values.max_x[0] = (int32_t)max_0_x;
-          vibration_values.max_x[1] = (int32_t)max_1_x;
-          vibration_values.max_x[2] = (int32_t)max_2_x;
-          vibration_values.max_x[3] = (int32_t)max_3_x;
+          vibration_values.max_x[0] = 15555;//(int32_t)max_0_x;
+          vibration_values.max_x[1] = 16666;//(int32_t)max_1_x;
+          vibration_values.max_x[2] = 17777;//(int32_t)max_2_x;
+          vibration_values.max_x[3] = 18888;//(int32_t)max_3_x;
 
-          vibration_values.max_y[0] = (int32_t)max_0_y;
-          vibration_values.max_y[1] = (int32_t)max_1_y;
-          vibration_values.max_y[2] = (int32_t)max_2_y;
-          vibration_values.max_y[3] = (int32_t)max_3_y;
+          vibration_values.max_y[0] = 25555;//(int32_t)max_0_y;
+          vibration_values.max_y[1] = 26666;//(int32_t)max_1_y;
+          vibration_values.max_y[2] = 27777;//(int32_t)max_2_y;
+          vibration_values.max_y[3] = 28888;//(int32_t)max_3_y;
 
-          vibration_values.max_z[0] = (int32_t)max_0_z;
-          vibration_values.max_z[1] = (int32_t)max_1_z;
-          vibration_values.max_z[2] = (int32_t)max_2_z;
-          vibration_values.max_z[3] = (int32_t)max_3_z;
+          vibration_values.max_z[0] = 35555;//(int32_t)max_0_z;
+          vibration_values.max_z[1] = 36666;//(int32_t)max_1_z;
+          vibration_values.max_z[2] = 37777;//(int32_t)max_2_z;
+          vibration_values.max_z[3] = 38888;//(int32_t)max_3_z;
           
           message_tlv_add_vibration_value(&msg_send, &vibration_values);
-          /* zero data */
+
           data_ready = false;  
         }
         message_tlv_add_checksum(&msg_send);
         send_bytes(&msg_send);
-        
+
+        /* print readable sent message*/
         #ifdef OUTPUT_READABLE_ACCELGYRO
           message_print(&msg_send);
           Serial.println();
@@ -411,6 +390,7 @@ void communicate(void){
   } 
 }
 
+/* Function for calculating average value */
 double average(double *in, int range){
   int start_num = 0;
   int stop_num = 0;
@@ -440,6 +420,7 @@ double average(double *in, int range){
   return average;
 }
 
+/* Function for determing maximum value */
 double max_value(double *in, int range){
   int start_num = 0;
   int stop_num = 0;
@@ -468,7 +449,7 @@ double max_value(double *in, int range){
   return max_value;
 }
 
-
+/* Function for printing readable data */
 void PrintVector(double *vData, double *vData1, double *vData2, uint8_t bufferSize, uint8_t scaleType){
   for (uint16_t i = 0; i < bufferSize; i++)
   {
