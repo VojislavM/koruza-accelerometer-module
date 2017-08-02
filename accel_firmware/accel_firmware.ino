@@ -22,6 +22,11 @@
 
 #define N 128    // Sampling point
 
+#define RANGE_0_TO_1  0
+#define RANGE_1_TO_3  1
+#define RANGE_3_TO_6  2
+#define RANGE_6_TO_10 3
+
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
@@ -30,8 +35,12 @@ MPU6050 accelgyro;
 //MPU6050 accelgyro(0x69); // <-- use for AD0 high
 arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 
-double samplingFrequency = 200;
+double samplingFrequency = 30;
 unsigned int delayTime = 0;
+
+unsigned long previousMillis = 0;        // will store last time accelerometer values are collected
+
+int sample_counter = 0;
 
 int16_t ax, ay, az;
 
@@ -63,6 +72,33 @@ double peak_send_x;
 double peak_send_y;
 double peak_send_z;
 
+double average_0_x = 0;
+double average_1_x = 0;
+double average_2_x = 0;
+double average_3_x = 0;
+double max_0_x = 0;
+double max_1_x = 0;
+double max_2_x = 0;
+double max_3_x = 0;
+
+double average_0_y= 0;
+double average_1_y = 0;
+double average_2_y = 0;
+double average_3_y = 0;
+double max_0_y = 0;
+double max_1_y = 0;
+double max_2_y = 0;
+double max_3_y = 0;
+
+double average_0_z = 0;
+double average_1_z = 0;
+double average_2_z = 0;
+double average_3_z = 0;
+double max_0_z = 0;
+double max_1_z = 0;
+double max_2_z = 0;
+double max_3_z = 0;
+
 #define LED_1 PB3
 #define LED_2 PB4
 bool blinkState = false;
@@ -87,9 +123,6 @@ tlv_acceleroemter_value_t acceleroemter_values;
 #define SCL_INDEX 0x00
 #define SCL_TIME 0x01
 #define SCL_FREQUENCY 0x02
-
-
-
 
 void setup() {
   delay(1000);
@@ -165,6 +198,7 @@ void setup() {
   
   while(1);
 */
+
   if(samplingFrequency<=1000)
     delayTime = 1000/samplingFrequency;
   else
@@ -176,44 +210,85 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println("start");
-  /* collect data for accelerometer */
-  for(uint16_t i =0;i<N;i++)
-  {
+while(1){  
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= delayTime) {
+    // save the last time accel data is collected
+    previousMillis = currentMillis;
+
     accelgyro.getAcceleration(&ax, &ay, &az);
-    ax_in[i] = (double)ax;
-    ay_in[i] = (double)ay;
-    az_in[i] = (double)az;
-    vImag_x[i] = 0;
-    vImag_y[i] = 0;
-    vImag_z[i] = 0;
-    if(samplingFrequency<=1000)
-      delay(delayTime);
-    else
-      delayMicroseconds(delayTime);
+    ax_in[sample_counter] = (double)ax;
+    ay_in[sample_counter] = (double)ay;
+    az_in[sample_counter] = (double)az;
+    vImag_x[sample_counter] = 0;
+    vImag_y[sample_counter] = 0;
+    vImag_z[sample_counter] = 0;
+
+    sample_counter++;
   }
-  //PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
-  //Serial.println();
-  //Serial.println();
 
-  //Serial.println("v1");
-  FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-  FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-  FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
-
-  //Serial.println("v2");
-  FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
-  FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
-
-  //PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
-  //Serial.println();
-  //Serial.println();
+  /* process the collected data */
+  if(sample_counter == N){
+    sample_counter = 0;
+    
+    Serial.println("Data:");
+    PrintVector(ax_in, ay_in, az_in, N, SCL_TIME);
+    Serial.println();
+    Serial.println();
   
-  //Serial.println("v3");
-  peak_x = FFT.MajorPeak(ax_in, (uint16_t)N, samplingFrequency);
-  peak_y = FFT.MajorPeak(ay_in, (uint16_t)N, samplingFrequency);
-  peak_z = FFT.MajorPeak(az_in, (uint16_t)N, samplingFrequency);
+    //Serial.println("v1");
+    FFT.Compute(ax_in, vImag_x, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+    FFT.Compute(ay_in, vImag_y, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+    FFT.Compute(az_in, vImag_z, (uint16_t)N, FFT_FORWARD); /* Compute FFT */
+    
+    Serial.println("Computed Real values:");
+    PrintVector(ax_in, ay_in, az_in, N, SCL_INDEX);
+    Serial.println();
+    //Serial.println("v2");
+    
+    FFT.ComplexToMagnitude(ax_in, vImag_x, (uint16_t)N); /* Compute magnitudes */
+    FFT.ComplexToMagnitude(ay_in, vImag_y, (uint16_t)N); /* Compute magnitudes */
+    FFT.ComplexToMagnitude(az_in, vImag_z, (uint16_t)N); /* Compute magnitudes */
+  
+    PrintVector(ax_in, ay_in, az_in, (N >> 1), SCL_FREQUENCY); 
+    Serial.println();
+    Serial.println();
+
+    
+  }
+} 
+
+
+  average_0_x = average(ax_in, RANGE_0_TO_1);
+  average_1_x = average(ax_in, RANGE_1_TO_3);
+  average_2_x = average(ax_in, RANGE_3_TO_6);
+  average_3_x = average(ax_in, RANGE_6_TO_10);
+
+  max_0_x = max_value(ax_in, RANGE_0_TO_1);
+  max_1_x = max_value(ax_in, RANGE_1_TO_3);
+  max_2_x = max_value(ax_in, RANGE_3_TO_6);
+  max_3_x = max_value(ax_in, RANGE_6_TO_10);
+
+  average_0_y = average(ay_in, RANGE_0_TO_1);
+  average_1_y = average(ay_in, RANGE_1_TO_3);
+  average_2_y = average(ay_in, RANGE_3_TO_6);
+  average_3_y = average(ay_in, RANGE_6_TO_10);
+
+  max_0_y = max_value(ay_in, RANGE_0_TO_1);
+  max_1_y = max_value(ay_in, RANGE_1_TO_3);
+  max_2_y = max_value(ay_in, RANGE_3_TO_6);
+  max_3_y = max_value(ay_in, RANGE_6_TO_10);
+
+  average_0_z = average(az_in, RANGE_0_TO_1);
+  average_1_z = average(az_in, RANGE_1_TO_3);
+  average_2_z = average(az_in, RANGE_3_TO_6);
+  average_3_z = average(az_in, RANGE_6_TO_10);
+
+  max_0_z = max_value(az_in, RANGE_0_TO_1);
+  max_1_z = max_value(az_in, RANGE_1_TO_3);
+  max_2_z = max_value(az_in, RANGE_3_TO_6);
+  max_3_z = max_value(az_in, RANGE_6_TO_10);
 
   if(command_received != true){
     average_sum_x += peak_x;
@@ -333,6 +408,62 @@ void communicate(void){
   } 
 }
 
+double average(double *in, int range){
+  int start_num = 0;
+  int stop_num = 0;
+  double average = 0;
+  switch(range){
+    case 0:
+      start_num = 0;
+      stop_num = 6; 
+      break;
+    case 1:
+      start_num = 6;
+      stop_num = 14; 
+      break;
+    case 2:
+      start_num = 14;
+      stop_num = 27; 
+      break;
+    case 3:
+      start_num = 27;
+      stop_num = 44; 
+      break;
+  }
+  for(int i = start_num; i < stop_num; i++){
+     average += in[i];
+  }
+  average = average/(stop_num - start_num);
+  return average;
+}
+
+double max_value(double *in, int range){
+  int start_num = 0;
+  int stop_num = 0;
+  double max_value = 0;
+  switch(range){
+    case 0:
+      start_num = 0;
+      stop_num = 6; 
+      break;
+    case 1:
+      start_num = 6;
+      stop_num = 14; 
+      break;
+    case 2:
+      start_num = 14;
+      stop_num = 27; 
+      break;
+    case 3:
+      start_num = 27;
+      stop_num = 44; 
+      break;
+  }
+  for(int i = start_num; i < stop_num; i++){
+     max_value = max(max_value, in[i]);
+  }
+  return max_value;
+}
 
 
 void PrintVector(double *vData, double *vData1, double *vData2, uint8_t bufferSize, uint8_t scaleType){
