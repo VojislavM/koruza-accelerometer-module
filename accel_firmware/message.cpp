@@ -163,24 +163,6 @@ message_result_t message_tlv_add_encoder_value(message_t *message, const tlv_enc
   return message_tlv_add(message, TLV_ENCODER_VALUE, sizeof(tlv_encoder_value_t), (uint8_t*) &tmp);
 }
 
-message_result_t message_tlv_add_acceleroemter_value(message_t *message, const tlv_acceleroemter_value_t *value)
-{
-  tlv_acceleroemter_value_t tmp;
-  tmp.ax = htonl(value->ax);
-  tmp.ay = htonl(value->ay);
-  tmp.az = htonl(value->az);
-  return message_tlv_add(message, TLV_ACCELEROMETER_VALUE, sizeof(tlv_acceleroemter_value_t), (uint8_t*) &tmp);
-}
-
-message_result_t message_tlv_add_gyroscope_value(message_t *message, const tlv_gyroscope_value_t *value)
-{
-  tlv_gyroscope_value_t tmp;
-  tmp.gx = htonl(value->gx);
-  tmp.gy = htonl(value->gy);
-  tmp.gz = htonl(value->gz);
-  return message_tlv_add(message, TLV_GYROSCOPE_VALUE, sizeof(tlv_gyroscope_value_t), (uint8_t*) &tmp);
-}
-
 message_result_t message_tlv_add_vibration_value(message_t *message, const tlv_vibration_value_t *value)
 {
   tlv_vibration_value_t tmp;
