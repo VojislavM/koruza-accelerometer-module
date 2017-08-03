@@ -336,6 +336,7 @@ void communicate(void){
         
         if(data_ready == true){
           /* put data in struct*/
+          /*
           vibration_values.avr_x[0] = 11111;//(int32_t)average_0_x;
           vibration_values.avr_x[1] = 12222;//(int32_t)average_1_x;
           vibration_values.avr_x[2] = 13333;//(int32_t)average_2_x;
@@ -365,6 +366,37 @@ void communicate(void){
           vibration_values.max_z[1] = 36666;//(int32_t)max_1_z;
           vibration_values.max_z[2] = 37777;//(int32_t)max_2_z;
           vibration_values.max_z[3] = 38888;//(int32_t)max_3_z;
+          */
+          /***************************************************/
+          vibration_values.avr_x[0] = (int32_t)average_0_x;
+          vibration_values.avr_x[1] = (int32_t)average_1_x;
+          vibration_values.avr_x[2] = (int32_t)average_2_x;
+          vibration_values.avr_x[3] = (int32_t)average_3_x;
+
+          vibration_values.avr_y[0] = (int32_t)average_0_y;
+          vibration_values.avr_y[1] = (int32_t)average_1_y;
+          vibration_values.avr_y[2] = (int32_t)average_2_y;
+          vibration_values.avr_y[3] = (int32_t)average_3_y;
+
+          vibration_values.avr_z[0] = (int32_t)average_0_z;
+          vibration_values.avr_z[1] = (int32_t)average_1_z;
+          vibration_values.avr_z[2] = (int32_t)average_2_z;
+          vibration_values.avr_z[3] = (int32_t)average_3_z;
+
+          vibration_values.max_x[0] = (int32_t)max_0_x;
+          vibration_values.max_x[1] = (int32_t)max_1_x;
+          vibration_values.max_x[2] = (int32_t)max_2_x;
+          vibration_values.max_x[3] = (int32_t)max_3_x;
+
+          vibration_values.max_y[0] = (int32_t)max_0_y;
+          vibration_values.max_y[1] = (int32_t)max_1_y;
+          vibration_values.max_y[2] = (int32_t)max_2_y;
+          vibration_values.max_y[3] = (int32_t)max_3_y;
+
+          vibration_values.max_z[0] = (int32_t)max_0_z;
+          vibration_values.max_z[1] = (int32_t)max_1_z;
+          vibration_values.max_z[2] = (int32_t)max_2_z;
+          vibration_values.max_z[3] = (int32_t)max_3_z;
           
           message_tlv_add_vibration_value(&msg_send, &vibration_values);
 
@@ -397,7 +429,7 @@ double average(double *in, int range){
   double average = 0;
   switch(range){
     case 0:
-      start_num = 0;
+      start_num = 1;
       stop_num = 6; 
       break;
     case 1:
@@ -427,7 +459,7 @@ double max_value(double *in, int range){
   double max_value = 0;
   switch(range){
     case 0:
-      start_num = 0;
+      start_num = 1;
       stop_num = 6; 
       break;
     case 1:
