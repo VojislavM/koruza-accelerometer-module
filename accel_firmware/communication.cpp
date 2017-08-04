@@ -48,14 +48,16 @@ void receive_bytes(volatile uint8_t *rx_buffer, boolean *cmd_rcv, int *msg_len){
     /* End byte received */
     else if (rx_data[0] == FRAME_MARKER_END) {
       /* End byte received in the frame */
-      if (rx_last[0] == FRAME_MARKER_ESCAPE && rx_buffer[0] == FRAME_MARKER_START) {
+      if ((rx_last[0] == FRAME_MARKER_ESCAPE) && (rx_last[1] != FRAME_MARKER_ESCAPE) && (rx_buffer[0] == FRAME_MARKER_START)){
         rx_buffer[rx_indx++] = rx_data[0];
       }
       /* Real end byte received */
-      else if (rx_last[0] != FRAME_MARKER_ESCAPE && rx_buffer[0] == FRAME_MARKER_START) {
+      else if ((rx_last[0] != FRAME_MARKER_ESCAPE || (rx_last[0] == FRAME_MARKER_ESCAPE && rx_last[1] == FRAME_MARKER_ESCAPE)) && rx_buffer[0] == FRAME_MARKER_START) {
         rx_buffer[rx_indx++] = rx_data[0];
         *msg_len = rx_indx;
         rx_indx = 0;
+        rx_last[0] = 0;
+        rx_last[1] = 0;
         /* Transfer complete, data is ready to read */
         *cmd_rcv = true;
         /* Disable USART1 interrupt */
@@ -68,6 +70,7 @@ void receive_bytes(volatile uint8_t *rx_buffer, boolean *cmd_rcv, int *msg_len){
       }
     }
     /* Store last received byte for ESC check */
+    rx_last[1] = rx_last[0];
     rx_last[0] = rx_data[0];
 
   }
