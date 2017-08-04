@@ -28,7 +28,7 @@
 #define MAX_TLV_COUNT 25
 
 
-typedef unsigned int ssize_t;  // (instead of int)
+//typedef unsigned int ssize_t;  // (instead of int)
 /**
    TLVs supported by the protocol.
 */
@@ -39,8 +39,7 @@ typedef enum {
   TLV_MOTOR_POSITION = 4,
   TLV_ERROR_REPORT = 7,
   TLV_ENCODER_VALUE = 9,
-  TLV_ACCELEROMETER_VALUE = 10,
-  TLV_TLV_GYROSCOPE_VALUE = 11,
+  TLV_VIBRATION_VALUES = 10,
 } tlv_type_t;
 
 /**
@@ -84,16 +83,13 @@ typedef struct {
 } tlv_encoder_value_t;
 
 typedef struct {
-  int32_t ax;
-  int32_t ay;
-  int32_t az;
-} tlv_acceleroemter_value_t;
-
-typedef struct {
-  int32_t gx;
-  int32_t gy;
-  int32_t gz;
-} tlv_gyroscope_value_t;
+  int32_t avr_x[4];
+  int32_t avr_y[4];
+  int32_t avr_z[4];
+  int32_t max_x[4];
+  int32_t max_y[4];
+  int32_t max_z[4];
+} tlv_vibration_value_t;
 
 typedef struct {
   uint32_t code;
@@ -213,22 +209,13 @@ message_result_t message_tlv_add_motor_position(message_t *message, const tlv_mo
 message_result_t message_tlv_add_encoder_value(message_t *message, const tlv_encoder_value_t *value);
 
 /**
-   Adds a accelerometer value TLV to a protocol message.
+   Adds a vibration value TLV to a protocol message.
 
    @param message Destination message instance to add the TLV to
-   @param value accelerometer value
+   @param value vibration value
    @return Operation result code
 */
-message_result_t message_tlv_add_acceleroemter_value(message_t *message, const tlv_acceleroemter_value_t *value);
-
-/**
-   Adds a gyroscope value TLV to a protocol message.
-
-   @param message Destination message instance to add the TLV to
-   @param value gyroscope value
-   @return Operation result code
-*/
-message_result_t message_tlv_add_gyroscope_value(message_t *message, const tlv_gyroscope_value_t *value);
+message_result_t message_tlv_add_vibration_value(message_t *message, const tlv_vibration_value_t *value);
 
 /**
    Adds a checksum TLV to a protocol message. The checksum value is automatically

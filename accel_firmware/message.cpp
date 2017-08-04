@@ -23,7 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "Ethernet.h"
+//#include "Ethernet.h"
 #include "inet.h"
 
 // Forward declarations.
@@ -163,22 +163,18 @@ message_result_t message_tlv_add_encoder_value(message_t *message, const tlv_enc
   return message_tlv_add(message, TLV_ENCODER_VALUE, sizeof(tlv_encoder_value_t), (uint8_t*) &tmp);
 }
 
-message_result_t message_tlv_add_acceleroemter_value(message_t *message, const tlv_acceleroemter_value_t *value)
+message_result_t message_tlv_add_vibration_value(message_t *message, const tlv_vibration_value_t *value)
 {
-  tlv_acceleroemter_value_t tmp;
-  tmp.ax = htonl(value->ax);
-  tmp.ay = htonl(value->ay);
-  tmp.az = htonl(value->ay);
-  return message_tlv_add(message, TLV_ACCELEROMETER_VALUE, sizeof(tlv_acceleroemter_value_t), (uint8_t*) &tmp);
-}
-
-message_result_t message_tlv_add_gyroscope_value(message_t *message, const tlv_gyroscope_value_t *value)
-{
-  tlv_gyroscope_value_t tmp;
-  tmp.gx = htonl(value->gx);
-  tmp.gy = htonl(value->gy);
-  tmp.gz = htonl(value->gy);
-  return message_tlv_add(message, TLV_TLV_GYROSCOPE_VALUE, sizeof(tlv_gyroscope_value_t), (uint8_t*) &tmp);
+  tlv_vibration_value_t tmp;
+  for(int i = 0; i < 4; i++){
+    tmp.avr_x[i] = htonl(value->avr_x[i]);
+    tmp.avr_y[i] = htonl(value->avr_y[i]);
+    tmp.avr_z[i] = htonl(value->avr_z[i]);
+    tmp.max_x[i] = htonl(value->max_x[i]);
+    tmp.max_y[i] = htonl(value->max_y[i]);
+    tmp.max_z[i] = htonl(value->max_z[i]);
+  }
+  return message_tlv_add(message, TLV_VIBRATION_VALUES, sizeof(tlv_vibration_value_t), (uint8_t*) &tmp);
 }
 
 message_result_t message_tlv_add_checksum(message_t *message)
