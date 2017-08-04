@@ -39,6 +39,7 @@ double samplingFrequency = 30;
 unsigned int delayTime = 0;
 
 unsigned long previousMillis = 0;        // will store last time accelerometer values are collected
+unsigned long currentMillis = 0;
 
 int sample_counter = 0;
 bool data_ready = false;
@@ -192,7 +193,7 @@ void setup() {
 
 void loop() {
   
-  unsigned long currentMillis = millis();
+  currentMillis = millis();
   /* collecting data */
   if (currentMillis - previousMillis >= delayTime) {
     // save the last time accel data is collected
