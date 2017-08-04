@@ -27,9 +27,50 @@ Originally module should have been just the I/O interface between the accelerome
 This means the MCU need to process the data before sending it. Data will be sent for all three axes x, y, and z. To be able the send all the important information the data will be divided into the several segments and send the vibration data for each axes in pairs of - peak value and average intensity. 
 
 The segments are divided as shown in diagram below:
+
 ![segment_module][link4_segment_module]
 
 To collect information about peak value and average intensity over some period of time and for each axis we need to change from the time domain to frequency domain. This will be done using Furie transformation (FFT).
+
+### Data
+Like mentioned data is sent for every axis:
+* x axis
+  * average value for each range
+    * avg_x[0], 0.1 - 1 Hz
+    * avg_x[1], 1 - 3 Hz
+    * avg_x[2], 3 - 6 Hz
+    * avg_x[3], 6 - 10 Hz
+  * maximum value for each range
+    * max_x[0], 0.1 - 1 Hz
+    * max_x[1], 1 - 3 Hz
+    * max_x[2], 3 - 6 Hz
+    * max_x[3], 6 - 10 Hz
+* y axis
+  * average value for each renge
+    * avg_y[0], 0.1 - 1 Hz
+    * avg_y[1], 1 - 3 Hz
+    * avg_y[2], 3 - 6 Hz
+    * avg_y[3], 6 - 10 Hz
+  * maximum value for each range
+    * max_y[0], 0.1 - 1 Hz
+    * max_y[1], 1 - 3 Hz
+    * max_y[2], 3 - 6 Hz
+    * max_y[3], 6 - 10 Hz
+* z axis
+  * average value for each renge
+    * avg_z[0], 0.1 - 1 Hz
+    * avg_z[1], 1 - 3 Hz
+    * avg_z[2], 3 - 6 Hz
+    * avg_z[3], 6 - 10 Hz
+  * maximum value for each range
+    * max_z[0], 0.1 - 1 Hz
+    * max_z[1], 1 - 3 Hz
+    * max_z[2], 3 - 6 Hz
+    * max_z[3], 6 - 10 Hz
+
+
+This data are processed every 4 seconds and send to the Koruza compute module unit. 
+Average values for all axis are from 0 to ~1000 when the module is not moving. 
 
 ---
 
