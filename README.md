@@ -22,7 +22,7 @@ Board dimensions are: 35 x 35 mm (30 x 30mm mounting holes), weight is 17g inclu
 ![hw_module][link3_hw_image]
 
 ### Software
-Originally module should have been just the I/O interface between the accelerometer and the Koruza unit, but because the data of interest is form 0.1 to 10 Hz which meant that sampling frequency needs to be at least two times bigger than the maximum frequency, that was not possible. So the sampling frequency is least 20 Hz and this means that time between each data package which is sent form the accelerometer module to the koruza module is 50 ms. This could represent the problem for the Koruza CM because it is already running the koruza control software and has intensive communication with the move driver, SFP modules, etc. 
+Originally module should have been just the I/O interface between the accelerometer and the Koruza unit, but because the data of interest is form 0.01 to 100 Hz which meant that sampling frequency needs to be at least two times bigger than the maximum frequency, that was not possible. So the sampling frequency is least 200 Hz and this means that time between each data package which is sent form the accelerometer module to the koruza module is 5 ms. This could represent the problem for the Koruza CM because it is already running the koruza control software and has intensive communication with the move driver, SFP modules, etc. 
 
 This means the MCU need to process the data before sending it. Data will be sent for all three axes x, y, and z. To be able the send all the important information the data will be divided into the several segments and send the vibration data for each axes in pairs of - peak value and average intensity. 
 
