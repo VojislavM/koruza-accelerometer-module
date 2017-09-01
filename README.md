@@ -6,7 +6,7 @@ Requirements for the module are:
 * small hardware form factor
 * optional firmware upgrade inside the koruza unit
 * USB connection to provide power and data
-* collect and process vibration data, frequencies of interest: **0.1 to 10 Hz**
+* collect and process vibration data, frequencies of interest: ** from about 0.01 to 100 Hz**
 * send processed data periodically, every 0.5 to 1 sec
 
 
@@ -26,47 +26,23 @@ Originally module should have been just the I/O interface between the accelerome
 
 This means the MCU need to process the data before sending it. Data will be sent for all three axes x, y, and z. To be able the send all the important information the data will be divided into the several segments and send the vibration data for each axes in pairs of - peak value and average intensity. 
 
-The segments are divided as shown in diagram below:
-
-![segment_module][link4_segment_module]
-
 To collect information about peak value and average intensity over some period of time and for each axis we need to change from the time domain to frequency domain. This will be done using Furie transformation (FFT).
 
 ### Data
 Like mentioned data is sent for every axis:
 * x axis
   * average value for each range
-    * avg_x[0], 0.1 - 1 Hz
-    * avg_x[1], 1 - 3 Hz
-    * avg_x[2], 3 - 6 Hz
-    * avg_x[3], 6 - 10 Hz
+    * avg_x[0], A - B Hz
+    * avg_x[1], B - C Hz
+    * avg_x[2], C - D Hz
+    * avg_x[3], D - E Hz
   * maximum value for each range
-    * max_x[0], 0.1 - 1 Hz
-    * max_x[1], 1 - 3 Hz
-    * max_x[2], 3 - 6 Hz
-    * max_x[3], 6 - 10 Hz
+    * max_x[0], A - B Hz
+    * max_x[1], B - C Hz
+    * max_x[2], C - D Hz
+    * max_x[3], D - E Hz
 * y axis
-  * average value for each renge
-    * avg_y[0], 0.1 - 1 Hz
-    * avg_y[1], 1 - 3 Hz
-    * avg_y[2], 3 - 6 Hz
-    * avg_y[3], 6 - 10 Hz
-  * maximum value for each range
-    * max_y[0], 0.1 - 1 Hz
-    * max_y[1], 1 - 3 Hz
-    * max_y[2], 3 - 6 Hz
-    * max_y[3], 6 - 10 Hz
 * z axis
-  * average value for each renge
-    * avg_z[0], 0.1 - 1 Hz
-    * avg_z[1], 1 - 3 Hz
-    * avg_z[2], 3 - 6 Hz
-    * avg_z[3], 6 - 10 Hz
-  * maximum value for each range
-    * max_z[0], 0.1 - 1 Hz
-    * max_z[1], 1 - 3 Hz
-    * max_z[2], 3 - 6 Hz
-    * max_z[3], 6 - 10 Hz
 
 
 This data are processed every 4 seconds and send to the Koruza compute module unit. 
