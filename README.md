@@ -6,7 +6,7 @@ Requirements for the module are:
 * small hardware form factor
 * optional firmware upgrade inside the koruza unit
 * USB connection to provide power and data
-* collect and process vibration data, frequencies of interest: ** from about 0.01 to 100 Hz**
+* collect and process vibration data, frequencies of interest: **from about 0.01 to 100 Hz**
 * send processed data periodically, every 0.5 to 1 sec
 
 
@@ -42,7 +42,27 @@ Like mentioned data is sent for every axis:
     * max_x[2], C - D Hz
     * max_x[3], D - E Hz
 * y axis
+  * average value for each range
+    * avg_y[0], A - B Hz
+    * avg_y[1], B - C Hz
+    * avg_y[2], C - D Hz
+    * avg_y[3], D - E Hz
+  * maximum value for each range
+    * max_y[0], A - B Hz
+    * max_y[1], B - C Hz
+    * max_y[2], C - D Hz
+    * max_y[3], D - E Hz
 * z axis
+  * average value for each range
+    * avg_z[0], A - B Hz
+    * avg_z[1], B - C Hz
+    * avg_z[2], C - D Hz
+    * avg_z[3], D - E Hz
+  * maximum value for each range
+    * max_z[0], A - B Hz
+    * max_z[1], B - C Hz
+    * max_z[2], C - D Hz
+    * max_z[3], D - E Hz
 
 
 This data are processed every 4 seconds and send to the Koruza compute module unit. 
